@@ -49,36 +49,37 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
         .eq("user_id", id)
         .single();
 
-      console.log("data: ", data);
-
       if (error && error.code !== "PGRST116") {
-        console.log("error: ", error)
         // Handle error if any
-        Alert.alert("Error", "Unable to fetch user data.");
+        alert("Error: Unable to fetch user data.");
         setLoading(false);
         return;
       }
 
       if (data) {
-        console.log("if! data: ", data)
         // User exists, update their details
         const { error: updateError } = await supabase
           .from("users")
-          .update({ username })
+          .update({
+            username,
+            updated_at: new Date().toISOString(),
+          })
           .eq("user_id", id);
 
         if (updateError) {
-          Alert.alert("Error", "Unable to update user details.");
+          alert("Error: Unable to update user details.");
         } else {
-          Alert.alert("Success", "Account details updated.");
+          alert("Success: Account details updated.");
         }
       } else {
-        console.log("else! username: ", id, username)
-
         // User does not exist, create a new entry
-        const { error: insertError } = await supabase
-          .from("users")
-          .insert([{ user_id: id, username: username }]);
+        const { error: insertError } = await supabase.from("users").insert([
+          {
+            user_id: id,
+            username,
+            updated_at: new Date().toISOString(),
+          },
+        ]);
 
         if (insertError) {
           alert("Error: Unable to create new user.");

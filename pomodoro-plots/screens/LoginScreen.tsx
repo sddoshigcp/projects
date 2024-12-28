@@ -14,6 +14,8 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
   const signInWithEmail = async () => {
     setLoading(true);
 
+    console.log("1")
+
     // Log in the user
     const {
       data: { user },
@@ -24,7 +26,7 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
     });
 
     if (error) {
-      Alert.alert(error.message);
+      alert(error.message);
       setLoading(false);
       return;
     }
@@ -32,7 +34,7 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
     // After successful login, check if the user exists in the 'Users' table
     if (user) {
       const { data, error: fetchError } = await supabase
-        .from("Users")
+        .from("users")
         .select("*")
         .eq("user_id", user.id)
         .single(); // Get the user record
