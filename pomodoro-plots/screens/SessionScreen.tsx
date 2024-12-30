@@ -1,11 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import {
-  View,
-  Text,
-  Button,
-  AppState,
-  Platform,
-} from "react-native";
+import { StyleSheet, View, Text, Button, AppState, Platform } from "react-native";
 import { supabase } from "../lib/supabase";
 
 const SessionScreen = ({ route, navigation }) => {
@@ -39,13 +33,15 @@ const SessionScreen = ({ route, navigation }) => {
   }, [isRunning]);
 
   useEffect(() => {
-    if (Platform.OS === "web") {
-      document.addEventListener("visibilitychange", handleVisibilityChange);
-    } else {
-      AppState.addEventListener("change", handleAppStateChange);
-    }
+    const appStateListener = AppState.addEventListener("change", handleAppStateChange);
 
-    return () => cleanupListeners();
+    // Clean up listeners on unmount or when navigating away
+    return () => {
+      if (appStateListener) {
+        appStateListener.remove();
+      }
+      cleanupListeners();
+    };
   }, []);
 
   const handleAppStateChange = (nextAppState) => {
@@ -65,12 +61,10 @@ const SessionScreen = ({ route, navigation }) => {
   const cleanupListeners = () => {
     if (Platform.OS === "web") {
       document.removeEventListener("visibilitychange", handleVisibilityChange);
-    } else {
-      AppState.removeEventListener("change", handleAppStateChange);
     }
   };
 
-  const endSession = async (reason: string) => {
+  const endSession = async (reason) => {
     if (navigatedAway.current) return;
     setIsRunning(false);
     navigatedAway.current = true;
@@ -97,16 +91,58 @@ const SessionScreen = ({ route, navigation }) => {
   };
 
   return (
-    <View>
-      <Text>Session Screen</Text>
-      <Text>Time Left: {formatTime(timeLeft)}</Text>
-      <Button
-        title={isRunning ? "Pause" : "Play"}
-        onPress={() => setIsRunning((prevState) => !prevState)}
-      />
-      <Button title="End Session" onPress={() => endSession("Terminated (Manually)")} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Pomodoro Timer</Text>
+      <Text style={styles.time}>{formatTime(timeLeft)}</Text>
+      <View style={styles.buttonContainer}>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title={isRunning ? "Pause" : "Play"}
+            onPress={() => setIsRunning((prevState) => !prevState)}
+            color="#6200EE"
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="End Session"
+            onPress={() => endSession("Terminated (Manually)")}
+            color="#6200EE"
+          />
+        </View>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  time: {
+    fontSize: 48,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 40,
+    color: "#333",
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  buttonWrapper: {
+    marginBottom: 10,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+});
 
 export default SessionScreen;

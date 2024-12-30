@@ -1,11 +1,16 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Button, TextInput, Alert } from "react-native";
+import { StyleSheet, View, Text, TextInput, Button } from "react-native";
 import { supabase } from "../lib/supabase";
 
 const LoginScreen = ({ navigation }: { navigation: any }) => {
-  const [email, setEmail] = useState(""); 
-  const [password, setPassword] = useState(""); 
+  const [email, setEmail] = useState("bobrobmusic@gmail.com");
+  const [password, setPassword] = useState("bobrobkabob1");
   const [loading, setLoading] = useState(false);
+
+  //TODO: remove
+  useEffect(() => {
+    handleLogin()
+  }, [])
 
   const handleLogin = () => {
     signInWithEmail();
@@ -14,9 +19,6 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
   const signInWithEmail = async () => {
     setLoading(true);
 
-    console.log("1")
-
-    // Log in the user
     const {
       data: { user },
       error,
@@ -31,20 +33,17 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
       return;
     }
 
-    // After successful login, check if the user exists in the 'Users' table
     if (user) {
       const { data, error: fetchError } = await supabase
         .from("users")
         .select("*")
         .eq("user_id", user.id)
-        .single(); // Get the user record
+        .single();
 
       if (fetchError || !data) {
-        // If the user doesn't exist in the Users table, redirect to the Account setup page
-        navigation.navigate("Account"); // Replace with the actual name of the Account screen
+        navigation.navigate("Account");
       } else {
-        // If the user exists in the Users table, redirect to the Home page
-        navigation.navigate("Home"); // Replace with the actual name of the Home screen
+        navigation.navigate("Home");
       }
     }
 
@@ -52,25 +51,89 @@ const LoginScreen = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <View>
-      <Text>Login</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Login</Text>
 
-      <TextInput placeholder="Email" value={email} onChangeText={setEmail} />
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Email</Text>
+        <TextInput
+          style={styles.input}
+          value={email}
+          onChangeText={setEmail}
+          keyboardType="email-address"
+          autoCapitalize="none"
+        />
+      </View>
 
-      <TextInput
-        placeholder="Password"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <Button disabled={loading} title="Login In" onPress={handleLogin} />
-      <Button
-        disabled={loading}
-        title="Sign Up"
-        onPress={() => navigation.navigate("Sign Up")}
-      />
+      <View style={styles.inputContainer}>
+        <Text style={styles.label}>Password</Text>
+        <TextInput
+          style={styles.input}
+          value={password}
+          onChangeText={setPassword}
+          secureTextEntry
+        />
+      </View>
+
+      <View style={styles.buttonContainer}>
+        <View style={styles.buttonWrapper}>
+          <Button
+            disabled={loading}
+            title={loading ? "Logging In..." : "Log In"}
+            onPress={handleLogin}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            disabled={loading}
+            title="Sign Up"
+            onPress={() => navigation.navigate("Sign Up")}
+          />
+        </View>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 40,
+    color: "#333",
+  },
+  inputContainer: {
+    marginBottom: 20,
+  },
+  label: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 5,
+  },
+  input: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: "#FFF",
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  buttonWrapper: {
+    marginBottom: 10,
+    backgroundColor: "#6200EE",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+});
 
 export default LoginScreen;

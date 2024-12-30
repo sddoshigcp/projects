@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Button, ActivityIndicator } from "react-native";
+import { StyleSheet, View, Text, Button, ActivityIndicator } from "react-native";
 import { supabase } from "../lib/supabase";
 
 const HomeScreen = ({ navigation }: { navigation: any }) => {
@@ -10,7 +10,6 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
     const fetchUserDetails = async () => {
       try {
         setLoading(true);
-        // Get the current authenticated user
         const {
           data: { user },
           error: authError,
@@ -22,7 +21,6 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
           return;
         }
 
-        // Query the users table for the username
         const { data, error } = await supabase
           .from("users")
           .select("username")
@@ -47,37 +45,79 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
   }, []);
 
   return (
-    <View>
-      <Text>
-        Home Screen
-      </Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Home Screen</Text>
 
       {loading ? (
-        <ActivityIndicator size="large" color="#0000ff" />
+        <ActivityIndicator size="large" color={styles.activityIndicator.color} />
       ) : username ? (
-        <Text>
-          Welcome, {username}!
-        </Text>
+        <Text style={styles.welcomeText}>Welcome, {username}!</Text>
       ) : (
-        <Text>
-          Unable to fetch user details.
-        </Text>
+        <Text style={styles.errorText}>Unable to fetch user details.</Text>
       )}
 
-      <Button
-        title="Start Session"
-        onPress={() => navigation.navigate("SessionSetup")}
-      />
-      <Button
-        title="View History"
-        onPress={() => navigation.navigate("History")}
-      />
-      <Button
-        title="Account Details"
-        onPress={() => navigation.navigate("Account")}
-      />
+      <View style={styles.buttonContainer}>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Start Session"
+            onPress={() => navigation.navigate("SessionSetup")}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="View History"
+            onPress={() => navigation.navigate("History")}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
+            title="Account Details"
+            onPress={() => navigation.navigate("Account")}
+          />
+        </View>
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  welcomeText: {
+    fontSize: 18,
+    textAlign: "center",
+    color: "#333",
+    marginBottom: 20,
+  },
+  errorText: {
+    fontSize: 16,
+    textAlign: "center",
+    color: "#D32F2F",
+    marginBottom: 20,
+  },
+  activityIndicator: {
+    color: "#6200EE",
+  },
+  buttonContainer: {
+    marginTop: 20,
+  },
+  buttonWrapper: {
+    marginBottom: 10,
+    backgroundColor: "#6200EE",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+});
 
 export default HomeScreen;

@@ -1,27 +1,29 @@
 import React, { useState } from "react";
-import { View, Text, Button, Picker, Alert } from "react-native";
+import { StyleSheet, View, Text, Button, Alert } from "react-native";
 import { supabase } from "../lib/supabase";
+import { Dropdown } from "react-native-element-dropdown";
 
 const SessionSetupScreen = ({ navigation }: { navigation: any }) => {
   const [selectedMinutes, setSelectedMinutes] = useState(15);
+  const [isDropdownFocused, setIsDropdownFocused] = useState(false);
 
   // Generate options for the dropdown (15 min to 120 min)
-  const minuteOptions = Array.from({ length: 8 }, (_, i) => (i + 1) * 15);
-  minuteOptions.push(0.1);
-  minuteOptions.push(1);
+  const minuteOptions = Array.from({ length: 8 }, (_, i) => ({
+    label: `${(i + 1) * 15} minutes`,
+    value: (i + 1) * 15,
+  }));
+  minuteOptions.push({ label: "0.1 minutes", value: 0.1 });
+  minuteOptions.push({ label: "1 minute", value: 1 });
 
   const handleStartTimer = async () => {
     try {
-      // Assuming you have user authentication set up and can retrieve the user ID
-      const user = supabase.auth.getUser();
+      const user = await supabase.auth.getUser();
       if (!user) {
         alert("Error: User not logged in");
         return;
       }
 
-      const userId = (await user).data.user?.id
-
-      console.log("userId: ", userId)
+      const userId = user.data.user?.id;
 
       const { data, error } = await supabase
         .from("sessions")
@@ -42,7 +44,6 @@ const SessionSetupScreen = ({ navigation }: { navigation: any }) => {
         return;
       }
 
-      // Navigate to the session screen with session details
       navigation.navigate("Session", {
         sessionLength: selectedMinutes,
         sessionId: data.session_id,
@@ -54,24 +55,64 @@ const SessionSetupScreen = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <View>
-      <Text>Session Setup Screen</Text>
-      <Text>Select Session Length:</Text>
-      <Picker
-        selectedValue={selectedMinutes}
-        onValueChange={(itemValue) => setSelectedMinutes(itemValue)}
-      >
-        {minuteOptions.map((minutes) => (
-          <Picker.Item
-            key={minutes}
-            label={`${minutes} minutes`}
-            value={minutes}
-          />
-        ))}
-      </Picker>
-      <Button title="Start Timer" onPress={handleStartTimer} />
+    <View style={styles.container}>
+      <Text style={styles.title}>Session Setup Screen</Text>
+      <Text style={styles.label}>Select Session Length:</Text>
+      <Dropdown
+        style={[styles.dropdown, isDropdownFocused && styles.dropdownFocused]}
+        data={minuteOptions}
+        labelField="label"
+        valueField="value"
+        placeholder="Select minutes"
+        value={selectedMinutes}
+        onFocus={() => setIsDropdownFocused(true)}
+        onBlur={() => setIsDropdownFocused(false)}
+        onChange={(item) => setSelectedMinutes(item.value)}
+      />
+      <View style={styles.buttonWrapper}>
+        <Button title="Start Timer" onPress={handleStartTimer} />
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  label: {
+    fontSize: 16,
+    color: "#333",
+    marginBottom: 10,
+    textAlign: "center",
+  },
+  dropdown: {
+    height: 50,
+    borderWidth: 1,
+    borderColor: "#DDD",
+    borderRadius: 8,
+    paddingHorizontal: 10,
+    backgroundColor: "#FFF",
+    marginBottom: 20,
+  },
+  dropdownFocused: {
+    borderColor: "#6200EE",
+  },
+  buttonWrapper: {
+    backgroundColor: "#6200EE",
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+});
 
 export default SessionSetupScreen;
