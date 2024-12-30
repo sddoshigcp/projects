@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, Button, TextInput, Alert } from "react-native";
+import { View, Text, Button, TextInput, StyleSheet, Alert } from "react-native";
 import { supabase } from "../lib/supabase";
 
 const AccountScreen = ({ navigation }: { navigation: any }) => {
@@ -15,8 +15,6 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
     setLoading(true);
     const user = await supabase.auth.getUser();
 
-    console.log("user here: ", user);
-
     if (user.data) {
       setEmail(user.data.user?.email || "");
     } else {
@@ -27,19 +25,15 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
 
   const handleSave = async () => {
     if (!username) {
-      navigation.navigate("Home")
+      navigation.navigate("Home");
     }
 
     setLoading(true);
 
     const user = await supabase.auth.getUser();
 
-    console.log("user: ", user);
-
     if (user.data) {
       const { id } = user.data.user;
-
-      console.log("id: ", id);
 
       // Check if user already exists in the 'users' table
       const { data, error } = await supabase
@@ -49,7 +43,6 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
         .single();
 
       if (error && error.code !== "PGRST116") {
-        // Handle error if any
         alert("Error: Unable to fetch user data.");
         setLoading(false);
         return;
@@ -91,7 +84,7 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
     }
 
     setLoading(false);
-    navigation.navigate("Home")
+    navigation.navigate("Home");
   };
 
   const updatePassword = () => {
@@ -99,27 +92,68 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
   };
 
   return (
-    <View>
-      <Text>Account Screen</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Account Screen</Text>
 
-      <TextInput placeholder="Email" editable={false} value={email} />
       <TextInput
+        style={styles.input}
+        placeholder="Email"
+        editable={false}
+        value={email}
+      />
+      <TextInput
+        style={styles.input}
         placeholder="Username"
         value={username}
         onChangeText={setUsername}
       />
-      <Button
-        disabled={loading}
-        title="Update Password"
-        onPress={updatePassword}
-      />
-      <Button
-        disabled={loading}
-        title="Save Account Details"
-        onPress={handleSave}
-      />
+      <View style={styles.buttonContainer}>
+        <Button
+          disabled={loading}
+          title="Update Password"
+          onPress={updatePassword}
+          color="#6200EE"
+        />
+        <Button
+          disabled={loading}
+          title="Save Account Details"
+          onPress={handleSave}
+          color="#6200EE"
+        />
+      </View>
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    justifyContent: "center",
+    padding: 20,
+    backgroundColor: "#F5F5F5",
+  },
+  title: {
+    fontSize: 24,
+    fontWeight: "bold",
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+  input: {
+    height: 40,
+    borderColor: "#6200EE",
+    borderWidth: 1,
+    borderRadius: 8,
+    marginBottom: 20,
+    paddingLeft: 10,
+    fontSize: 16,
+    backgroundColor: "#FFF",
+  },
+  buttonContainer: {
+    marginTop: 20,
+    borderRadius: 8,
+    overflow: "hidden",
+  },
+});
 
 export default AccountScreen;
