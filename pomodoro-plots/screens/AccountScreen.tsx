@@ -27,8 +27,7 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
 
   const handleSave = async () => {
     if (!username) {
-      Alert.alert("Error", "Username is required.");
-      return;
+      navigation.navigate("Home")
     }
 
     setLoading(true);
@@ -92,6 +91,7 @@ const AccountScreen = ({ navigation }: { navigation: any }) => {
     }
 
     setLoading(false);
+    navigation.navigate("Home")
   };
 
   const updatePassword = () => {

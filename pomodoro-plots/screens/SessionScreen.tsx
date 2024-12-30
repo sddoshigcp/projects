@@ -1,136 +1,94 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import {
   View,
   Text,
   Button,
   AppState,
-  AppStateStatus,
   Platform,
-  Alert,
 } from "react-native";
 import { supabase } from "../lib/supabase";
 
-const SessionScreen = ({
-  route,
-  navigation,
-}: {
-  route: any;
-  navigation: any;
-}) => {
-  const { sessionLength, sessionId } = route.params; // Retrieve sessionId and sessionLength from route params
-  const [timeLeft, setTimeLeft] = useState(sessionLength * 60); // Convert minutes to seconds
-  const [isRunning, setIsRunning] = useState(true); // Timer is running initially
-  const [startTime] = useState(new Date()); // Session start time
-  const [endedAutomatically, setEndedAutomatically] = useState(false); // Track session end type
-  const [endedDueToFocusLoss, setEndedDueToFocusLoss] = useState(false); // Track focus loss end
+const SessionScreen = ({ route, navigation }) => {
+  const { sessionLength, sessionId } = route.params;
+  const [timeLeft, setTimeLeft] = useState(sessionLength * 60);
+  const [isRunning, setIsRunning] = useState(true);
+  const navigatedAway = useRef(false);
+  const isRunningRef = useRef(isRunning); // Ref to track isRunning state
 
-  // Function to update session in the database
-  const updateSession = async (updates: any) => {
-    try {
-      const { error } = await supabase
-        .from("sessions")
-        .update(updates)
-        .eq("session_id", sessionId);
-
-      if (error) {
-        console.error("Error updating session:", error);
-        Alert.alert("Error", "Failed to update session data.");
-      }
-    } catch (err) {
-      console.error("Unexpected error:", err);
-      Alert.alert("Error", "An unexpected error occurred while updating.");
-    }
-  };
-
-  // Timer logic
   useEffect(() => {
-    let timer: NodeJS.Timeout;
-    if (isRunning && timeLeft > 0) {
+    isRunningRef.current = isRunning; // Keep the ref updated
+  }, [isRunning]);
+
+  useEffect(() => {
+    let timer;
+
+    if (isRunning) {
       timer = setInterval(() => {
-        setTimeLeft((prevTime) => prevTime - 1);
+        setTimeLeft((prevTime) => {
+          if (prevTime <= 0) {
+            clearInterval(timer); // Stop the timer when time reaches 0
+            endSession("Completed");
+            return 0;
+          }
+          return prevTime - 1;
+        });
       }, 1000);
-
-      // Update session's `updated_at` field periodically
-      updateSession({ updated_at: new Date().toISOString() });
-    } else {
-      clearInterval(timer);
     }
 
-    // Navigate to results screen when timer reaches zero
-    if (timeLeft === 0) {
-      setEndedAutomatically(true);
-      updateSession({
-        updated_at: new Date().toISOString(),
-        end_time: new Date().toISOString(),
-        session_status: "Complete",
-      });
-      navigation.navigate("SessionResults", {
-        sessionLength,
-        startTime,
-        endTime: new Date(),
-        endedAutomatically: true,
-        endedDueToFocusLoss: false,
-      });
-    }
+    return () => clearInterval(timer); // Cleanup timer on unmount or pause
+  }, [isRunning]);
 
-    return () => clearInterval(timer); // Cleanup interval on unmount or when isRunning changes
-  }, [isRunning, timeLeft]);
-
-  // Handle focus/blur events
   useEffect(() => {
-    const handleAppStateChange = (nextAppState: AppStateStatus) => {
-      if (nextAppState === "background" || nextAppState === "inactive") {
-        setEndedDueToFocusLoss(true);
-        endSession(true);
-      }
-    };
-
-    const handleVisibilityChange = () => {
-      if (document.visibilityState === "hidden") {
-        setEndedDueToFocusLoss(true);
-        endSession(true);
-      }
-    };
-
-    // Add listeners
     if (Platform.OS === "web") {
       document.addEventListener("visibilitychange", handleVisibilityChange);
     } else {
       AppState.addEventListener("change", handleAppStateChange);
     }
 
-    // Cleanup listeners
-    return () => {
-      if (Platform.OS === "web") {
-        document.removeEventListener(
-          "visibilitychange",
-          handleVisibilityChange
-        );
-      } else {
-        AppState.removeEventListener("change", handleAppStateChange);
-      }
-    };
+    return () => cleanupListeners();
   }, []);
 
-  // End session and navigate to results screen
-  const endSession = async (dueToFocusLoss: boolean = false) => {
-    await updateSession({
-      updated_at: new Date().toISOString(),
-      end_time: new Date().toISOString(),
-      session_status: "Terminated",
-    });
-
-    navigation.navigate("SessionResults", {
-      sessionLength,
-      startTime,
-      endTime: new Date(),
-      endedAutomatically: false, // Not completed if terminated manually or via focus change
-      endedDueToFocusLoss: dueToFocusLoss,
-    });
+  const handleAppStateChange = (nextAppState) => {
+    if (navigatedAway.current) return;
+    if (nextAppState === "background" || nextAppState === "inactive") {
+      endSession("Terminated (Focus Lost)");
+    }
   };
 
-  // Convert timeLeft to MM:SS format
-  const formatTime = (seconds: number) => {
+  const handleVisibilityChange = () => {
+    if (navigatedAway.current) return;
+    if (document.visibilityState === "hidden") {
+      endSession("Terminated (Focus Lost)");
+    }
+  };
+
+  const cleanupListeners = () => {
+    if (Platform.OS === "web") {
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+    } else {
+      AppState.removeEventListener("change", handleAppStateChange);
+    }
+  };
+
+  const endSession = async (reason: string) => {
+    if (navigatedAway.current) return;
+    setIsRunning(false);
+    navigatedAway.current = true;
+
+    await supabase
+      .from("sessions")
+      .update({
+        updated_at: new Date().toISOString(),
+        end_time: new Date().toISOString(),
+        session_status: reason,
+      })
+      .eq("session_id", sessionId);
+
+    cleanupListeners();
+    navigation.navigate("SessionResults", { sessionId });
+  };
+
+  const formatTime = (seconds) => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
@@ -144,11 +102,9 @@ const SessionScreen = ({
       <Text>Time Left: {formatTime(timeLeft)}</Text>
       <Button
         title={isRunning ? "Pause" : "Play"}
-        onPress={() => {
-          setIsRunning((prevState) => !prevState);
-        }}
+        onPress={() => setIsRunning((prevState) => !prevState)}
       />
-      <Button title="End Session" onPress={() => endSession(false)} />
+      <Button title="End Session" onPress={() => endSession("Terminated (Manually)")} />
     </View>
   );
 };

@@ -8,6 +8,7 @@ const SessionSetupScreen = ({ navigation }: { navigation: any }) => {
   // Generate options for the dropdown (15 min to 120 min)
   const minuteOptions = Array.from({ length: 8 }, (_, i) => (i + 1) * 15);
   minuteOptions.push(0.1);
+  minuteOptions.push(1);
 
   const handleStartTimer = async () => {
     try {
