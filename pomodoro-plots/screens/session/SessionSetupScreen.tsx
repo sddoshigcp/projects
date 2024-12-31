@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { StyleSheet, View, Text, Button, Alert } from "react-native";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase"
 import { Dropdown } from "react-native-element-dropdown";
 
 const SessionSetupScreen = ({ navigation }: { navigation: any }) => {

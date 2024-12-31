@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { StyleSheet, View, Text, Button, AppState, Platform } from "react-native";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase";
 
 const SessionScreen = ({ route, navigation }) => {
   const { sessionLength, sessionId } = route.params;

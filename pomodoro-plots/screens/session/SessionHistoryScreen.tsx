@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { View, Text, Button, StyleSheet, ScrollView } from "react-native";
-import { supabase } from "../lib/supabase";
+import { supabase } from "../../lib/supabase";
 
-const HistoryScreen = ({ navigation }: { navigation: any }) => {
+const SessionHistoryScreen = ({ navigation }: { navigation: any }) => {
   const [sessions, setSessions] = useState<any[]>([]);
 
   useEffect(() => {
@@ -99,4 +99,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default HistoryScreen;
+export default SessionHistoryScreen;

@@ -59,14 +59,14 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
       <View style={styles.buttonContainer}>
         <View style={styles.buttonWrapper}>
           <Button
-            title="Start Session"
-            onPress={() => navigation.navigate("SessionSetup")}
+            title="Pomodoro Session"
+            onPress={() => navigation.navigate("SessionHome")}
           />
         </View>
         <View style={styles.buttonWrapper}>
           <Button
-            title="View History"
-            onPress={() => navigation.navigate("History")}
+            title="Workout"
+            onPress={() => navigation.navigate("WorkoutHome")}
           />
         </View>
         <View style={styles.buttonWrapper}>
