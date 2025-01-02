@@ -23,7 +23,7 @@ const HomeScreen = ({ navigation }: { navigation: any }) => {
         <View style={styles.buttonWrapper}>
           <Button
             title="View History"
-            onPress={() => navigation.navigate("History")}
+            onPress={() => navigation.navigate("SessionHistory")}
           />
         </View>
         <View style={styles.buttonWrapper}>
