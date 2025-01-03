@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, Alert } from "react-native";
+import { StyleSheet, View, Text, Alert, TouchableOpacity } from "react-native";
 import { supabase } from "../../lib/supabase";
 import { Dropdown } from "react-native-element-dropdown";
 import {
@@ -10,6 +10,7 @@ import {
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
+import {MeasuringStrategy} from '@dnd-kit/core';
 import {
   SortableContext,
   verticalListSortingStrategy,
@@ -24,11 +25,14 @@ type Exercise = {
   order: number;
 };
 
+const measuringConfig = {
+  droppable: {
+    strategy: MeasuringStrategy.Always,
+  }
+};
+
 const CreateWorkoutScreen = ({ navigation }: { navigation: any }) => {
   const [allExercises, setAllExercises] = useState<Exercise[]>([]);
-  const [selectedExerciseId, setSelectedExerciseId] = useState<string | null>(
-    null
-  );
   const [workoutExercises, setWorkoutExercises] = useState<Exercise[]>([]);
 
   useEffect(() => {
@@ -64,20 +68,20 @@ const CreateWorkoutScreen = ({ navigation }: { navigation: any }) => {
     fetchExercises();
   }, []);
 
-  const handleAddExercise = () => {
-    if (!selectedExerciseId) {
-      Alert.alert("Error", "Please select an exercise.");
-      return;
-    }
-
-    const selectedExercise = allExercises.find((e) => e.id === selectedExerciseId);
+  const handleAddExercise = (exerciseId: string) => {
+    const selectedExercise = allExercises.find((e) => e.id === exerciseId);
     if (!selectedExercise) return;
 
     setWorkoutExercises((prev) => [
       ...prev,
       { ...selectedExercise, order: prev.length },
     ]);
-    setSelectedExerciseId(null);
+  };
+
+  const handleRemoveExercise = (exerciseId: string) => {
+    setWorkoutExercises((prev) =>
+      prev.filter((exercise) => exercise.id !== exerciseId)
+    );
   };
 
   const handleDragEnd = ({ active, over }) => {
@@ -138,33 +142,30 @@ const CreateWorkoutScreen = ({ navigation }: { navigation: any }) => {
         data={allExercises.map((e) => ({ label: e.name, value: e.id }))}
         labelField="label"
         valueField="value"
-        value={selectedExerciseId}
-        onChange={(item) => setSelectedExerciseId(item.value)}
+        onChange={(item) => handleAddExercise(item.value)}
         placeholder="Select an Exercise"
       />
-
-      <TouchableOpacity onPress={handleAddExercise} style={styles.buttonWrapper}>
-        <Text style={{ color: "#FFF", padding: 10 }}>Add Exercise</Text>
-      </TouchableOpacity>
 
       <DndContext
         sensors={sensors}
         collisionDetection={closestCorners}
         onDragEnd={handleDragEnd}
+        measuring={measuringConfig}
       >
         <SortableContext
           items={workoutExercises.map((e) => e.id)}
           strategy={verticalListSortingStrategy}
         >
-          <DroppableColumn items={workoutExercises} />
+          <DroppableColumn
+            items={workoutExercises}
+            onRemoveItem={handleRemoveExercise}
+          />
         </SortableContext>
       </DndContext>
 
       <TouchableOpacity onPress={handleSaveWorkout} style={styles.buttonWrapper}>
         <Text style={{ color: "#FFF", padding: 10 }}>Save Workout</Text>
       </TouchableOpacity>
-
-      <TouchableOpacity onPress={console.log("allExercises: ", allExercises)}></TouchableOpacity>
     </View>
   );
 };
