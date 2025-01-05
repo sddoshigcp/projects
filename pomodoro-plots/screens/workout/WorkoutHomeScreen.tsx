@@ -28,6 +28,12 @@ const WorkoutHomeScreen = ({ navigation }: { navigation: any }) => {
         </View>
         <View style={styles.buttonWrapper}>
           <Button
+            title="My Workouts"
+            onPress={() => navigation.navigate("UserWorkouts")}
+          />
+        </View>
+        <View style={styles.buttonWrapper}>
+          <Button
             title="Perform Workout"
             onPress={() => navigation.navigate("PerformWorkout")}
           />
