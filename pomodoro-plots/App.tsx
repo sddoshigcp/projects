@@ -17,6 +17,7 @@ import SessionResultsScreen from './screens/session/SessionResultsScreen';
 import CreateExerciseScreen from './screens/workout/CreateExerciseScreen';
 import CreateWorkoutScreen from './screens/workout/CreateWorkoutScreen';
 import UserWorkoutsScreen from './screens/workout/UserWorkoutsScreen';
+import EditWorkoutScreen from './screens/workout/EditWorkoutScreen';
 
 const Stack = createNativeStackNavigator();
 
@@ -45,7 +46,7 @@ const MyStack = () => {
           <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
           <Stack.Screen name="CreateExercise" component={CreateExerciseScreen} />
           <Stack.Screen name="UserWorkouts" component={UserWorkoutsScreen} />
-          {/* <Stack.Screen name="PerformWorkout" component={PerformWorkoutScreen} /> */}
+          <Stack.Screen name="EditWorkout" component={EditWorkoutScreen} />
           {/* <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
