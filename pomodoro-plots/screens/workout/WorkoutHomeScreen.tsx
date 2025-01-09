@@ -1,97 +1,84 @@
-import React, { useEffect, useState } from "react";
-import {
-  StyleSheet,
-  View,
-  Text,
-  Button,
-  ActivityIndicator,
-} from "react-native";
-import { supabase } from "../../lib/supabase";
+import React from "react";
+import { View, StyleSheet, SafeAreaView } from "react-native";
+import { Text, Appbar, BottomNavigation } from "react-native-paper";
+import { DatePickerModal } from "react-native-paper-dates";
+import ExercisesModal from "./ExercisesModal";
+
+const TodayRoute = () => <Text>Today</Text>;
 
 const WorkoutHomeScreen = ({ navigation }: { navigation: any }) => {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Workout Home Screen</Text>
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
 
-      <View style={styles.buttonContainer}>
-      <View style={styles.buttonWrapper}>
-          <Button
-            title="Create Exercise"
-            onPress={() => navigation.navigate("CreateExercise")}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="Create Workout"
-            onPress={() => navigation.navigate("CreateWorkout")}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="My Workouts"
-            onPress={() => navigation.navigate("UserWorkouts")}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="Perform Workout"
-            onPress={() => navigation.navigate("PerformWorkout")}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="View Workout History"
-            onPress={() => navigation.navigate("History")}
-          />
-        </View>
-        <View style={styles.buttonWrapper}>
-          <Button
-            title="Return Home"
-            onPress={() => navigation.navigate("Home")}
-          />
-        </View>
-      </View>
-    </View>
+  // Navigation Stuff
+  const [index, setIndex] = React.useState(0);
+  const [routes] = React.useState([
+    { key: "today", title: "Today", focusedIcon: "calendar" },
+    { key: "exercises", title: "Exercises", focusedIcon: "dumbbell" },
+  ]);
+
+  const renderScene = ({ route }: { route: any }) => {
+    switch (route.key) {
+      case "today":
+        return <TodayRoute />;
+      case "exercises":
+        return <ExercisesModal />;
+      default:
+        return null;
+    }
+  };
+
+  // Date Picker Stuff
+  const [date, setDate] = React.useState(new Date());
+  const [open, setOpen] = React.useState(false);
+
+  const onDismissSingle = React.useCallback(() => {
+    setOpen(false);
+  }, [setOpen]);
+
+  const onConfirmSingle = React.useCallback(
+    (params: Date | undefined) => {
+      setOpen(false);
+      if (params) {
+        setDate(params);
+      }
+    },
+    [setOpen, setDate]
+  );
+
+  return (
+    <SafeAreaView style={styles.safeArea}>
+      <Appbar.Header>
+        <Appbar.BackAction onPress={() => navigation.navigate("Home")} />
+        <Appbar.Content title={date.toDateString()} />
+        <Appbar.Action icon="calendar" onPress={() => setOpen(true)} />
+      </Appbar.Header>
+      <DatePickerModal
+        locale="en"
+        mode="single"
+        visible={open}
+        onDismiss={onDismissSingle}
+        date={date}
+        onConfirm={onConfirmSingle}
+        saveLabel={"Select"}
+        validRange={{ endDate: today }}
+      />
+      <BottomNavigation
+        navigationState={{ index, routes }}
+        onIndexChange={setIndex}
+        renderScene={renderScene}
+      />
+    </SafeAreaView>
   );
 };
 
 const styles = StyleSheet.create({
-  container: {
+  safeArea: {
     flex: 1,
-    justifyContent: "center",
-    padding: 20,
-    backgroundColor: "#F5F5F5",
+    backgroundColor: "#fff",
   },
-  title: {
-    fontSize: 24,
-    fontWeight: "bold",
-    textAlign: "center",
-    marginBottom: 20,
-    color: "#333",
-  },
-  welcomeText: {
-    fontSize: 18,
-    textAlign: "center",
-    color: "#333",
-    marginBottom: 20,
-  },
-  errorText: {
-    fontSize: 16,
-    textAlign: "center",
-    color: "#D32F2F",
-    marginBottom: 20,
-  },
-  activityIndicator: {
-    color: "#6200EE",
-  },
-  buttonContainer: {
-    marginTop: 20,
-  },
-  buttonWrapper: {
-    marginBottom: 10,
-    backgroundColor: "#6200EE",
-    borderRadius: 8,
-    overflow: "hidden",
+  content: {
+    flex: 1,
   },
 });
 

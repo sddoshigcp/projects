@@ -93,6 +93,12 @@ const UserWorkoutsScreen = ({ navigation }: { navigation: any }) => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              style={styles.workoutTextWrapper}
+              onPress={() => navigation.navigate("PerformWorkout", {workoutId: item.id})}
+            >
+              <Text style={styles.workoutName}>{"Perform Workout"}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
               onPress={() => confirmDelete(item)}
               style={styles.deleteIcon}
             >

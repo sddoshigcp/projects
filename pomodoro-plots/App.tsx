@@ -43,11 +43,9 @@ const MyStack = () => {
 
           {/* Workout Stuff */}
           <Stack.Screen name="WorkoutHome" component={WorkoutHomeScreen} />
-          <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
+          {/* <Stack.Screen name="CreateWorkout" component={CreateWorkoutScreen} />
           <Stack.Screen name="CreateExercise" component={CreateExerciseScreen} />
-          <Stack.Screen name="UserWorkouts" component={UserWorkoutsScreen} />
-          <Stack.Screen name="EditWorkout" component={EditWorkoutScreen} />
-          {/* <Stack.Screen name="WorkoutHistory" component={WorkoutHistoryScreen} /> */}
+          <Stack.Screen name="UserWorkouts" component={UserWorkoutsScreen} /> */}
         </Stack.Navigator>
       </NavigationContainer>
     </GestureHandlerRootView>

@@ -1,9 +1,12 @@
 import React, { useState } from "react";
 import { StyleSheet, View, Text, Button, Alert, TextInput } from "react-native";
 import { supabase } from "../../lib/supabase";
+import { Dropdown } from "react-native-element-dropdown";
 
 const CreateExerciseScreen = ({ navigation }: { navigation: any }) => {
   const [exerciseName, setExerciseName] = useState("");
+  const [exerciseCategory, setExerciseCategory] = useState("");
+  const exerciseCategories = ["Resistance", "Cardio", "Assisted", "Body Weight"];
 
   const handleCreateExercise = async () => {
     const user = await supabase.auth.getUser();
@@ -18,11 +21,17 @@ const CreateExerciseScreen = ({ navigation }: { navigation: any }) => {
       return;
     }
 
+    if (!exerciseCategory) {
+      Alert.alert("Error", "Please select an exercise category.");
+      return;
+    }
+
     try {
       // Insert the new custom exercise into the database
       const { data, error } = await supabase.from("custom_exercises").insert([
         {
           name: exerciseName,
+          exercise_category: exerciseCategory,
           user_id: userId, // Replace with dynamic user ID if available
         },
       ]);
@@ -51,6 +60,19 @@ const CreateExerciseScreen = ({ navigation }: { navigation: any }) => {
         value={exerciseName}
         onChangeText={setExerciseName}
       />
+      <Text style={styles.label}>Enter Exercise Type:</Text>
+      <Dropdown
+        style={styles.dropdown}
+        data={exerciseCategories.map((e) => ({
+          label: e,
+          value: e,
+        }))}
+        value={exerciseCategory}
+        labelField="label"
+        valueField="value"
+        onChange={(item) => setExerciseCategory(item.value)}
+        placeholder="Select a Category"
+      />
       <View style={styles.buttonWrapper}>
         <Button title="Create Exercise" onPress={handleCreateExercise} />
       </View>
@@ -59,6 +81,7 @@ const CreateExerciseScreen = ({ navigation }: { navigation: any }) => {
 };
 
 const styles = StyleSheet.create({
+  dropdown: { height: 50, marginBottom: 20 },
   container: {
     flex: 1,
     justifyContent: "center",
